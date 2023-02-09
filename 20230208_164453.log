@@ -1,0 +1,1142 @@
+2023-02-08 16:44:53,235 - mmdet - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.12 | packaged by conda-forge | (default, Oct 26 2021, 06:08:21) [GCC 9.4.0]
+CUDA available: True
+GPU 0: NVIDIA GeForce RTX 2080 Ti
+CUDA_HOME: /usr/local/cuda
+NVCC: Cuda compilation tools, release 10.0, V10.0.13
+GCC: gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+PyTorch: 1.7.0+cu101
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) Math Kernel Library Version 2020.0.0 Product Build 20191122 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v1.6.0 (Git Hash 5ef631a030a6f73131c77892041042805a06064f)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 10.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75
+  - CuDNN 7.6.3
+  - Magma 2.5.2
+  - Build settings: BLAS=MKL, BUILD_TYPE=Release, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DUSE_VULKAN_WRAPPER -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, USE_CUDA=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.8.1+cu101
+OpenCV: 4.7.0
+MMCV: 1.7.1
+MMCV Compiler: GCC 7.3
+MMCV CUDA Compiler: 10.1
+MMDetection: 2.28.0+1b7d778
+------------------------------------------------------------
+
+2023-02-08 16:44:53,820 - mmdet - INFO - Distributed training: False
+2023-02-08 16:44:54,407 - mmdet - INFO - Config:
+model = dict(
+    type='MaskRCNN',
+    backbone=dict(
+        type='ResNet',
+        depth=50,
+        num_stages=4,
+        out_indices=(0, 1, 2, 3),
+        frozen_stages=1,
+        norm_cfg=dict(type='BN', requires_grad=True),
+        norm_eval=True,
+        style='pytorch',
+        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50')),
+    neck=dict(
+        type='FPN',
+        in_channels=[256, 512, 1024, 2048],
+        out_channels=256,
+        num_outs=5),
+    rpn_head=dict(
+        type='RPNHead',
+        in_channels=256,
+        feat_channels=256,
+        anchor_generator=dict(
+            type='AnchorGenerator',
+            scales=[8],
+            ratios=[0.5, 1.0, 2.0],
+            strides=[4, 8, 16, 32, 64]),
+        bbox_coder=dict(
+            type='DeltaXYWHBBoxCoder',
+            target_means=[0.0, 0.0, 0.0, 0.0],
+            target_stds=[1.0, 1.0, 1.0, 1.0]),
+        loss_cls=dict(
+            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0),
+        loss_bbox=dict(type='L1Loss', loss_weight=1.0)),
+    roi_head=dict(
+        type='StandardRoIHead',
+        bbox_roi_extractor=dict(
+            type='SingleRoIExtractor',
+            roi_layer=dict(type='RoIAlign', output_size=7, sampling_ratio=0),
+            out_channels=256,
+            featmap_strides=[4, 8, 16, 32]),
+        bbox_head=dict(
+            type='Shared2FCBBoxHead',
+            in_channels=256,
+            fc_out_channels=1024,
+            roi_feat_size=7,
+            num_classes=1,
+            bbox_coder=dict(
+                type='DeltaXYWHBBoxCoder',
+                target_means=[0.0, 0.0, 0.0, 0.0],
+                target_stds=[0.1, 0.1, 0.2, 0.2]),
+            reg_class_agnostic=False,
+            loss_cls=dict(
+                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+            loss_bbox=dict(type='L1Loss', loss_weight=1.0)),
+        mask_roi_extractor=dict(
+            type='SingleRoIExtractor',
+            roi_layer=dict(type='RoIAlign', output_size=14, sampling_ratio=0),
+            out_channels=256,
+            featmap_strides=[4, 8, 16, 32]),
+        mask_head=dict(
+            type='FCNMaskHead',
+            num_convs=4,
+            in_channels=256,
+            conv_out_channels=256,
+            num_classes=1,
+            loss_mask=dict(
+                type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))),
+    train_cfg=dict(
+        rpn=dict(
+            assigner=dict(
+                type='MaxIoUAssigner',
+                pos_iou_thr=0.7,
+                neg_iou_thr=0.3,
+                min_pos_iou=0.3,
+                match_low_quality=True,
+                ignore_iof_thr=-1),
+            sampler=dict(
+                type='RandomSampler',
+                num=256,
+                pos_fraction=0.5,
+                neg_pos_ub=-1,
+                add_gt_as_proposals=False),
+            allowed_border=-1,
+            pos_weight=-1,
+            debug=False),
+        rpn_proposal=dict(
+            nms_pre=2000,
+            max_per_img=1000,
+            nms=dict(type='nms', iou_threshold=0.7),
+            min_bbox_size=0),
+        rcnn=dict(
+            assigner=dict(
+                type='MaxIoUAssigner',
+                pos_iou_thr=0.5,
+                neg_iou_thr=0.5,
+                min_pos_iou=0.5,
+                match_low_quality=True,
+                ignore_iof_thr=-1),
+            sampler=dict(
+                type='RandomSampler',
+                num=512,
+                pos_fraction=0.25,
+                neg_pos_ub=-1,
+                add_gt_as_proposals=True),
+            mask_size=28,
+            pos_weight=-1,
+            debug=False)),
+    test_cfg=dict(
+        rpn=dict(
+            nms_pre=1000,
+            max_per_img=1000,
+            nms=dict(type='nms', iou_threshold=0.7),
+            min_bbox_size=0),
+        rcnn=dict(
+            score_thr=0.05,
+            nms=dict(type='nms', iou_threshold=0.5),
+            max_per_img=100,
+            mask_thr_binary=0.5)))
+dataset_type = 'CocoDataset'
+data_root = 'data/coco/'
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
+    dict(type='RandomFlip', flip_ratio=0.5),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='Pad', size_divisor=32),
+    dict(type='DefaultFormatBundle'),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(1333, 800),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='Pad', size_divisor=32),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ])
+]
+data = dict(
+    samples_per_gpu=2,
+    workers_per_gpu=2,
+    train=dict(
+        type='CocoDataset',
+        ann_file=
+        '/root/mmdetection/data/balloon/annotation/train/coco_ann.json',
+        img_prefix='/root/mmdetection/data/balloon/train',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+            dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
+            dict(type='RandomFlip', flip_ratio=0.5),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='Pad', size_divisor=32),
+            dict(type='DefaultFormatBundle'),
+            dict(
+                type='Collect',
+                keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks'])
+        ],
+        classes='/root/mmdetection/data/balloon/annotation/classes.txt'),
+    val=dict(
+        type='CocoDataset',
+        ann_file='/root/mmdetection/data/balloon/annotation/val/coco_ann.json',
+        img_prefix='/root/mmdetection/data/balloon/val',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(1333, 800),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='Pad', size_divisor=32),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ],
+        classes='/root/mmdetection/data/balloon/annotation/classes.txt'),
+    test=dict(
+        type='CocoDataset',
+        ann_file='/root/mmdetection/data/balloon/annotation/val/coco_ann.json',
+        img_prefix='/root/mmdetection/data/balloon/val',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(1333, 800),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='Pad', size_divisor=32),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ],
+        classes='/root/mmdetection/data/balloon/annotation/classes.txt'))
+evaluation = dict(metric=['bbox', 'segm'])
+optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
+optimizer_config = dict(grad_clip=None)
+lr_config = dict(
+    policy='step',
+    warmup='linear',
+    warmup_iters=500,
+    warmup_ratio=0.001,
+    step=[16, 22])
+runner = dict(type='EpochBasedRunner', max_epochs=24)
+checkpoint_config = dict(interval=1)
+log_config = dict(interval=50, hooks=[dict(type='TextLoggerHook')])
+custom_hooks = [dict(type='NumClassCheckHook')]
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = '/root/mmdetection/checkpoint/mask_rcnn_r50_fpn_2x_coco_bbox_mAP-0.392__segm_mAP-0.354_20200505_003907-3e542a40.pth'
+resume_from = None
+workflow = [('train', 1)]
+opencv_num_threads = 0
+mp_start_method = 'fork'
+auto_scale_lr = dict(enable=False, base_batch_size=16)
+classes = '/root/mmdetection/data/balloon/annotation/classes.txt'
+work_dir = 'work_dirs/balloon'
+auto_resume = False
+gpu_ids = [0]
+
+2023-02-08 16:44:54,408 - mmdet - INFO - Set random seed to 939562571, deterministic: False
+2023-02-08 16:44:59,643 - mmdet - INFO - Automatic scaling of learning rate (LR) has been disabled.
+2023-02-08 16:44:59,655 - mmdet - INFO - load checkpoint from local path: /root/mmdetection/checkpoint/mask_rcnn_r50_fpn_2x_coco_bbox_mAP-0.392__segm_mAP-0.354_20200505_003907-3e542a40.pth
+2023-02-08 16:44:59,841 - mmdet - WARNING - The model and loaded state dict do not match exactly
+
+size mismatch for roi_head.bbox_head.fc_cls.weight: copying a param with shape torch.Size([81, 1024]) from checkpoint, the shape in current model is torch.Size([2, 1024]).
+size mismatch for roi_head.bbox_head.fc_cls.bias: copying a param with shape torch.Size([81]) from checkpoint, the shape in current model is torch.Size([2]).
+size mismatch for roi_head.bbox_head.fc_reg.weight: copying a param with shape torch.Size([320, 1024]) from checkpoint, the shape in current model is torch.Size([4, 1024]).
+size mismatch for roi_head.bbox_head.fc_reg.bias: copying a param with shape torch.Size([320]) from checkpoint, the shape in current model is torch.Size([4]).
+size mismatch for roi_head.mask_head.conv_logits.weight: copying a param with shape torch.Size([80, 256, 1, 1]) from checkpoint, the shape in current model is torch.Size([1, 256, 1, 1]).
+size mismatch for roi_head.mask_head.conv_logits.bias: copying a param with shape torch.Size([80]) from checkpoint, the shape in current model is torch.Size([1]).
+2023-02-08 16:44:59,850 - mmdet - INFO - Start running, host: root@zhangcji, work_dir: /root/mmdetection/work_dirs/balloon
+2023-02-08 16:44:59,851 - mmdet - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) NumClassCheckHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) NumClassCheckHook                  
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2023-02-08 16:44:59,852 - mmdet - INFO - workflow: [('train', 1)], max: 24 epochs
+2023-02-08 16:44:59,852 - mmdet - INFO - Checkpoints will be saved to /root/mmdetection/work_dirs/balloon by HardDiskBackend.
+2023-02-08 16:45:12,283 - mmdet - INFO - Saving checkpoint at 1 epochs
+2023-02-08 16:45:21,494 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:45:21,778 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.243
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.540
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.127
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.329
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.539
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.442
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.442
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.442
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.330
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.574
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:45:21,778 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:45:22,125 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.335
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.539
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.331
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.505
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.635
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.626
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.626
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.626
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.522
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.748
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:45:22,127 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:45:22,127 - mmdet - INFO - Epoch(val) [1][13]	bbox_mAP: 0.2427, bbox_mAP_50: 0.5400, bbox_mAP_75: 0.1268, bbox_mAP_s: 0.3294, bbox_mAP_m: 0.5390, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.2427 0.5400 0.1268 0.3294 0.5390 -1.0000, segm_mAP: 0.3353, segm_mAP_50: 0.5389, segm_mAP_75: 0.3315, segm_mAP_s: 0.5051, segm_mAP_m: 0.6347, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.3353 0.5389 0.3315 0.5051 0.6347 -1.0000
+2023-02-08 16:45:33,810 - mmdet - INFO - Saving checkpoint at 2 epochs
+2023-02-08 16:45:41,531 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:45:41,764 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.550
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.807
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.714
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.591
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.751
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.676
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.676
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.676
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.596
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.770
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:45:41,765 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:45:42,036 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.689
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.803
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.792
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.700
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.870
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.798
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.798
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.798
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.722
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.887
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:45:42,038 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:45:42,038 - mmdet - INFO - Epoch(val) [2][13]	bbox_mAP: 0.5500, bbox_mAP_50: 0.8070, bbox_mAP_75: 0.7135, bbox_mAP_s: 0.5908, bbox_mAP_m: 0.7507, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.5500 0.8070 0.7135 0.5908 0.7507 -1.0000, segm_mAP: 0.6887, segm_mAP_50: 0.8027, segm_mAP_75: 0.7920, segm_mAP_s: 0.7003, segm_mAP_m: 0.8700, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.6887 0.8027 0.7920 0.7003 0.8700 -1.0000
+2023-02-08 16:45:53,967 - mmdet - INFO - Saving checkpoint at 3 epochs
+2023-02-08 16:45:57,573 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:45:57,658 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.697
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.868
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.838
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.693
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.837
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.766
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.766
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.766
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.700
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.843
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:45:57,659 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:45:57,756 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.762
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.868
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.838
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.711
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.901
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.822
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.822
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.822
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.737
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.922
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:45:57,757 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:45:57,758 - mmdet - INFO - Epoch(val) [3][13]	bbox_mAP: 0.6971, bbox_mAP_50: 0.8681, bbox_mAP_75: 0.8385, bbox_mAP_s: 0.6929, bbox_mAP_m: 0.8366, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.6971 0.8681 0.8385 0.6929 0.8366 -1.0000, segm_mAP: 0.7617, segm_mAP_50: 0.8681, segm_mAP_75: 0.8385, segm_mAP_s: 0.7111, segm_mAP_m: 0.9007, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7617 0.8681 0.8385 0.7111 0.9007 -1.0000
+2023-02-08 16:46:09,624 - mmdet - INFO - Saving checkpoint at 4 epochs
+2023-02-08 16:46:12,573 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:46:12,634 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.727
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.887
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.852
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.692
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.851
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.770
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.770
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.770
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.693
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.861
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:46:12,634 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:46:12,700 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.781
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.871
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.855
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.721
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.909
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.820
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.820
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.820
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.722
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.935
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:46:12,701 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:46:12,701 - mmdet - INFO - Epoch(val) [4][13]	bbox_mAP: 0.7267, bbox_mAP_50: 0.8866, bbox_mAP_75: 0.8517, bbox_mAP_s: 0.6921, bbox_mAP_m: 0.8505, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7267 0.8866 0.8517 0.6921 0.8505 -1.0000, segm_mAP: 0.7807, segm_mAP_50: 0.8712, segm_mAP_75: 0.8554, segm_mAP_s: 0.7208, segm_mAP_m: 0.9092, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7807 0.8712 0.8554 0.7208 0.9092 -1.0000
+2023-02-08 16:46:24,808 - mmdet - INFO - Saving checkpoint at 5 epochs
+2023-02-08 16:46:28,211 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:46:28,294 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.743
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.921
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.899
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.746
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.822
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.786
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.786
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.786
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.752
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.826
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:46:28,295 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:46:28,384 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.807
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.903
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.903
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.759
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.919
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.852
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.852
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.852
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.770
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.948
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:46:28,385 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:46:28,385 - mmdet - INFO - Epoch(val) [5][13]	bbox_mAP: 0.7434, bbox_mAP_50: 0.9210, bbox_mAP_75: 0.8987, bbox_mAP_s: 0.7460, bbox_mAP_m: 0.8220, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7434 0.9210 0.8987 0.7460 0.8220 -1.0000, segm_mAP: 0.8066, segm_mAP_50: 0.9026, segm_mAP_75: 0.9026, segm_mAP_s: 0.7592, segm_mAP_m: 0.9194, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.8066 0.9026 0.9026 0.7592 0.9194 -1.0000
+2023-02-08 16:46:40,471 - mmdet - INFO - Saving checkpoint at 6 epochs
+2023-02-08 16:46:43,658 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:46:43,732 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.708
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.898
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.886
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.745
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.822
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.786
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.786
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.786
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.748
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.830
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:46:43,732 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:46:43,816 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.787
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.898
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.862
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.792
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.900
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.848
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.848
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.848
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.796
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.909
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:46:43,817 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:46:43,817 - mmdet - INFO - Epoch(val) [6][13]	bbox_mAP: 0.7083, bbox_mAP_50: 0.8984, bbox_mAP_75: 0.8862, bbox_mAP_s: 0.7453, bbox_mAP_m: 0.8218, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7083 0.8984 0.8862 0.7453 0.8218 -1.0000, segm_mAP: 0.7872, segm_mAP_50: 0.8984, segm_mAP_75: 0.8623, segm_mAP_s: 0.7919, segm_mAP_m: 0.9003, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7872 0.8984 0.8623 0.7919 0.9003 -1.0000
+2023-02-08 16:46:55,991 - mmdet - INFO - Saving checkpoint at 7 epochs
+2023-02-08 16:46:59,123 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:46:59,193 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.722
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.891
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.861
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.752
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.824
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.794
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.794
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.794
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.756
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.839
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:46:59,193 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:46:59,270 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.792
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.873
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.859
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.776
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.914
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.852
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.852
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.852
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.781
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.935
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:46:59,271 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:46:59,271 - mmdet - INFO - Epoch(val) [7][13]	bbox_mAP: 0.7220, bbox_mAP_50: 0.8909, bbox_mAP_75: 0.8613, bbox_mAP_s: 0.7520, bbox_mAP_m: 0.8240, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7220 0.8909 0.8613 0.7520 0.8240 -1.0000, segm_mAP: 0.7916, segm_mAP_50: 0.8730, segm_mAP_75: 0.8594, segm_mAP_s: 0.7759, segm_mAP_m: 0.9137, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7916 0.8730 0.8594 0.7759 0.9137 -1.0000
+2023-02-08 16:47:11,231 - mmdet - INFO - Saving checkpoint at 8 epochs
+2023-02-08 16:47:14,238 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:47:14,307 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.721
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.906
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.868
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.705
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.852
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.790
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.790
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.790
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.715
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.878
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:47:14,307 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:47:14,384 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.810
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.893
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.873
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.758
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.923
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.858
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.858
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.858
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.778
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.952
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:47:14,385 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:47:14,385 - mmdet - INFO - Epoch(val) [8][13]	bbox_mAP: 0.7211, bbox_mAP_50: 0.9056, bbox_mAP_75: 0.8683, bbox_mAP_s: 0.7047, bbox_mAP_m: 0.8517, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7211 0.9056 0.8683 0.7047 0.8517 -1.0000, segm_mAP: 0.8099, segm_mAP_50: 0.8926, segm_mAP_75: 0.8732, segm_mAP_s: 0.7582, segm_mAP_m: 0.9228, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.8099 0.8926 0.8732 0.7582 0.9228 -1.0000
+2023-02-08 16:47:26,296 - mmdet - INFO - Saving checkpoint at 9 epochs
+2023-02-08 16:47:28,940 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:47:28,998 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.773
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.933
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.911
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.739
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.867
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.810
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.810
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.810
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.744
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.887
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:47:28,998 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:47:29,061 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.821
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.907
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.890
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.770
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.923
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.854
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.854
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.854
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.778
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.943
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:47:29,062 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:47:29,062 - mmdet - INFO - Epoch(val) [9][13]	bbox_mAP: 0.7725, bbox_mAP_50: 0.9334, bbox_mAP_75: 0.9115, bbox_mAP_s: 0.7393, bbox_mAP_m: 0.8674, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7725 0.9334 0.9115 0.7393 0.8674 -1.0000, segm_mAP: 0.8210, segm_mAP_50: 0.9068, segm_mAP_75: 0.8897, segm_mAP_s: 0.7700, segm_mAP_m: 0.9226, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.8210 0.9068 0.8897 0.7700 0.9226 -1.0000
+2023-02-08 16:47:41,084 - mmdet - INFO - Saving checkpoint at 10 epochs
+2023-02-08 16:47:43,574 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:47:43,619 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.698
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.909
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.863
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.630
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.818
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.738
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.738
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.738
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.637
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.857
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:47:43,619 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:47:43,667 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.798
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.910
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.865
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.704
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.935
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.828
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.828
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.828
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.715
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.961
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:47:43,668 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:47:43,668 - mmdet - INFO - Epoch(val) [10][13]	bbox_mAP: 0.6975, bbox_mAP_50: 0.9094, bbox_mAP_75: 0.8634, bbox_mAP_s: 0.6298, bbox_mAP_m: 0.8177, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.6975 0.9094 0.8634 0.6298 0.8177 -1.0000, segm_mAP: 0.7980, segm_mAP_50: 0.9101, segm_mAP_75: 0.8647, segm_mAP_s: 0.7036, segm_mAP_m: 0.9352, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7980 0.9101 0.8647 0.7036 0.9352 -1.0000
+2023-02-08 16:47:55,843 - mmdet - INFO - Saving checkpoint at 11 epochs
+2023-02-08 16:47:58,326 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:47:58,365 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.638
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.772
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.727
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.506
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.844
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.666
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.666
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.666
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.507
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.852
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:47:58,366 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:47:58,407 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.687
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.772
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.706
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.533
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.887
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.700
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.700
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.700
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.533
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.896
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:47:58,408 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:47:58,408 - mmdet - INFO - Epoch(val) [11][13]	bbox_mAP: 0.6376, bbox_mAP_50: 0.7719, bbox_mAP_75: 0.7272, bbox_mAP_s: 0.5059, bbox_mAP_m: 0.8441, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.6376 0.7719 0.7272 0.5059 0.8441 -1.0000, segm_mAP: 0.6870, segm_mAP_50: 0.7719, segm_mAP_75: 0.7064, segm_mAP_s: 0.5327, segm_mAP_m: 0.8867, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.6870 0.7719 0.7064 0.5327 0.8867 -1.0000
+2023-02-08 16:48:10,418 - mmdet - INFO - Saving checkpoint at 12 epochs
+2023-02-08 16:48:13,086 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:48:13,133 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.708
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.856
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.856
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.661
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.850
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.752
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.752
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.752
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.663
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.857
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:48:13,133 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:48:13,184 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.754
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.830
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.830
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.684
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.917
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.800
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.800
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.800
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.689
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.930
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:48:13,185 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:48:13,186 - mmdet - INFO - Epoch(val) [12][13]	bbox_mAP: 0.7081, bbox_mAP_50: 0.8555, bbox_mAP_75: 0.8555, bbox_mAP_s: 0.6614, bbox_mAP_m: 0.8503, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7081 0.8555 0.8555 0.6614 0.8503 -1.0000, segm_mAP: 0.7536, segm_mAP_50: 0.8301, segm_mAP_75: 0.8301, segm_mAP_s: 0.6842, segm_mAP_m: 0.9167, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7536 0.8301 0.8301 0.6842 0.9167 -1.0000
+2023-02-08 16:48:25,197 - mmdet - INFO - Saving checkpoint at 13 epochs
+2023-02-08 16:48:27,852 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:48:27,900 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.709
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.885
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.858
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.665
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.839
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.754
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.754
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.754
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.667
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.857
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:48:27,900 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:48:27,952 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.803
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.900
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.884
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.739
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.932
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.842
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.842
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.842
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.748
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.952
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:48:27,953 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:48:27,953 - mmdet - INFO - Epoch(val) [13][13]	bbox_mAP: 0.7090, bbox_mAP_50: 0.8848, bbox_mAP_75: 0.8584, bbox_mAP_s: 0.6646, bbox_mAP_m: 0.8392, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7090 0.8848 0.8584 0.6646 0.8392 -1.0000, segm_mAP: 0.8026, segm_mAP_50: 0.9003, segm_mAP_75: 0.8836, segm_mAP_s: 0.7387, segm_mAP_m: 0.9318, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.8026 0.9003 0.8836 0.7387 0.9318 -1.0000
+2023-02-08 16:48:40,145 - mmdet - INFO - Saving checkpoint at 14 epochs
+2023-02-08 16:48:42,543 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:48:42,577 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.592
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.760
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.688
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.464
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.780
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.614
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.614
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.614
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.467
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.787
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:48:42,577 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:48:42,613 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.664
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.760
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.714
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.499
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.864
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.670
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.670
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.670
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.500
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.870
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:48:42,614 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:48:42,614 - mmdet - INFO - Epoch(val) [14][13]	bbox_mAP: 0.5918, bbox_mAP_50: 0.7596, bbox_mAP_75: 0.6882, bbox_mAP_s: 0.4644, bbox_mAP_m: 0.7796, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.5918 0.7596 0.6882 0.4644 0.7796 -1.0000, segm_mAP: 0.6642, segm_mAP_50: 0.7596, segm_mAP_75: 0.7137, segm_mAP_s: 0.4990, segm_mAP_m: 0.8643, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.6642 0.7596 0.7137 0.4990 0.8643 -1.0000
+2023-02-08 16:48:54,623 - mmdet - INFO - Saving checkpoint at 15 epochs
+2023-02-08 16:48:57,048 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:48:57,084 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.618
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.761
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.733
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.540
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.775
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.654
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.654
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.654
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.541
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.787
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:48:57,084 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:48:57,123 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.677
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.761
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.745
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.559
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.853
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.702
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.702
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.702
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.563
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.865
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:48:57,124 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:48:57,124 - mmdet - INFO - Epoch(val) [15][13]	bbox_mAP: 0.6183, bbox_mAP_50: 0.7613, bbox_mAP_75: 0.7331, bbox_mAP_s: 0.5396, bbox_mAP_m: 0.7752, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.6183 0.7613 0.7331 0.5396 0.7752 -1.0000, segm_mAP: 0.6767, segm_mAP_50: 0.7613, segm_mAP_75: 0.7449, segm_mAP_s: 0.5594, segm_mAP_m: 0.8527, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.6767 0.7613 0.7449 0.5594 0.8527 -1.0000
+2023-02-08 16:49:09,217 - mmdet - INFO - Saving checkpoint at 16 epochs
+2023-02-08 16:49:11,698 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:49:11,742 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.667
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.837
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.746
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.573
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.860
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.712
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.712
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.712
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.574
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.874
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:49:11,742 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:49:11,788 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.712
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.834
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.767
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.593
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.932
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.762
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.762
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.762
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.596
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.957
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:49:11,789 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:49:11,789 - mmdet - INFO - Epoch(val) [16][13]	bbox_mAP: 0.6667, bbox_mAP_50: 0.8373, bbox_mAP_75: 0.7460, bbox_mAP_s: 0.5733, bbox_mAP_m: 0.8604, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.6667 0.8373 0.7460 0.5733 0.8604 -1.0000, segm_mAP: 0.7124, segm_mAP_50: 0.8335, segm_mAP_75: 0.7668, segm_mAP_s: 0.5926, segm_mAP_m: 0.9321, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7124 0.8335 0.7668 0.5926 0.9321 -1.0000
+2023-02-08 16:49:23,804 - mmdet - INFO - Saving checkpoint at 17 epochs
+2023-02-08 16:49:26,229 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:49:26,271 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.689
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.848
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.772
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.600
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.865
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.728
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.728
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.728
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.600
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.878
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:49:26,271 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:49:26,317 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.727
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.844
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.774
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.625
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.923
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.772
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.772
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.772
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.626
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.943
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:49:26,318 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:49:26,318 - mmdet - INFO - Epoch(val) [17][13]	bbox_mAP: 0.6893, bbox_mAP_50: 0.8478, bbox_mAP_75: 0.7723, bbox_mAP_s: 0.6000, bbox_mAP_m: 0.8646, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.6893 0.8478 0.7723 0.6000 0.8646 -1.0000, segm_mAP: 0.7269, segm_mAP_50: 0.8442, segm_mAP_75: 0.7743, segm_mAP_s: 0.6248, segm_mAP_m: 0.9233, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7269 0.8442 0.7743 0.6248 0.9233 -1.0000
+2023-02-08 16:49:38,198 - mmdet - INFO - Saving checkpoint at 18 epochs
+2023-02-08 16:49:40,536 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:49:40,580 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.688
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.834
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.791
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.560
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.910
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.728
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.728
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.728
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.559
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.926
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:49:40,581 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:49:40,623 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.718
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.832
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.786
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.595
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.923
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.756
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.756
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.756
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.596
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.943
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:49:40,624 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:49:40,624 - mmdet - INFO - Epoch(val) [18][13]	bbox_mAP: 0.6877, bbox_mAP_50: 0.8343, bbox_mAP_75: 0.7913, bbox_mAP_s: 0.5604, bbox_mAP_m: 0.9102, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.6877 0.8343 0.7913 0.5604 0.9102 -1.0000, segm_mAP: 0.7181, segm_mAP_50: 0.8321, segm_mAP_75: 0.7864, segm_mAP_s: 0.5950, segm_mAP_m: 0.9232, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7181 0.8321 0.7864 0.5950 0.9232 -1.0000
+2023-02-08 16:49:52,601 - mmdet - INFO - Saving checkpoint at 19 epochs
+2023-02-08 16:49:54,975 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:49:55,014 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.706
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.855
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.787
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.589
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.913
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.746
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.746
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.746
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.589
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.930
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:49:55,014 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:49:55,056 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.742
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.855
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.813
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.629
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.927
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.776
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.776
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.776
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.630
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.948
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:49:55,057 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:49:55,057 - mmdet - INFO - Epoch(val) [19][13]	bbox_mAP: 0.7056, bbox_mAP_50: 0.8554, bbox_mAP_75: 0.7869, bbox_mAP_s: 0.5891, bbox_mAP_m: 0.9134, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7056 0.8554 0.7869 0.5891 0.9134 -1.0000, segm_mAP: 0.7418, segm_mAP_50: 0.8554, segm_mAP_75: 0.8127, segm_mAP_s: 0.6287, segm_mAP_m: 0.9266, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7418 0.8554 0.8127 0.6287 0.9266 -1.0000
+2023-02-08 16:50:07,044 - mmdet - INFO - Saving checkpoint at 20 epochs
+2023-02-08 16:50:09,381 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:50:09,420 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.710
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.857
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.814
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.601
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.903
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.746
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.746
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.746
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.600
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.917
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:50:09,420 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:50:09,462 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.750
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.857
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.781
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.636
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.934
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.784
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.784
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.784
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.637
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.957
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:50:09,462 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:50:09,462 - mmdet - INFO - Epoch(val) [20][13]	bbox_mAP: 0.7101, bbox_mAP_50: 0.8570, bbox_mAP_75: 0.8139, bbox_mAP_s: 0.6010, bbox_mAP_m: 0.9027, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7101 0.8570 0.8139 0.6010 0.9027 -1.0000, segm_mAP: 0.7505, segm_mAP_50: 0.8570, segm_mAP_75: 0.7813, segm_mAP_s: 0.6356, segm_mAP_m: 0.9344, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7505 0.8570 0.7813 0.6356 0.9344 -1.0000
+2023-02-08 16:50:21,275 - mmdet - INFO - Saving checkpoint at 21 epochs
+2023-02-08 16:50:23,599 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:50:23,640 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.728
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.875
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.786
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.633
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.904
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.766
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.766
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.766
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.637
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.917
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:50:23,641 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:50:23,685 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.759
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.873
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.807
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.658
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.929
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.796
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.796
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.796
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.663
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.952
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:50:23,686 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:50:23,686 - mmdet - INFO - Epoch(val) [21][13]	bbox_mAP: 0.7277, bbox_mAP_50: 0.8753, bbox_mAP_75: 0.7863, bbox_mAP_s: 0.6333, bbox_mAP_m: 0.9041, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7277 0.8753 0.7863 0.6333 0.9041 -1.0000, segm_mAP: 0.7594, segm_mAP_50: 0.8730, segm_mAP_75: 0.8069, segm_mAP_s: 0.6579, segm_mAP_m: 0.9293, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7594 0.8730 0.8069 0.6579 0.9293 -1.0000
+2023-02-08 16:50:35,457 - mmdet - INFO - Saving checkpoint at 22 epochs
+2023-02-08 16:50:37,773 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:50:37,811 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.711
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.841
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.768
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.590
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.911
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.744
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.744
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.744
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.589
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.926
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:50:37,811 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:50:37,852 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.726
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.841
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.765
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.598
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.930
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.762
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.762
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.762
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.600
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.952
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:50:37,852 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:50:37,853 - mmdet - INFO - Epoch(val) [22][13]	bbox_mAP: 0.7111, bbox_mAP_50: 0.8407, bbox_mAP_75: 0.7677, bbox_mAP_s: 0.5901, bbox_mAP_m: 0.9115, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7111 0.8407 0.7677 0.5901 0.9115 -1.0000, segm_mAP: 0.7262, segm_mAP_50: 0.8407, segm_mAP_75: 0.7646, segm_mAP_s: 0.5980, segm_mAP_m: 0.9303, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7262 0.8407 0.7646 0.5980 0.9303 -1.0000
+2023-02-08 16:50:49,747 - mmdet - INFO - Saving checkpoint at 23 epochs
+2023-02-08 16:50:52,069 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:50:52,106 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.712
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.826
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.778
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.578
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.915
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.740
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.740
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.740
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.578
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.930
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:50:52,106 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:50:52,146 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.727
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.826
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.775
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.579
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.935
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.754
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.754
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.754
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.581
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.957
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:50:52,147 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:50:52,147 - mmdet - INFO - Epoch(val) [23][13]	bbox_mAP: 0.7124, bbox_mAP_50: 0.8256, bbox_mAP_75: 0.7781, bbox_mAP_s: 0.5782, bbox_mAP_m: 0.9150, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7124 0.8256 0.7781 0.5782 0.9150 -1.0000, segm_mAP: 0.7267, segm_mAP_50: 0.8256, segm_mAP_75: 0.7749, segm_mAP_s: 0.5792, segm_mAP_m: 0.9350, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7267 0.8256 0.7749 0.5792 0.9350 -1.0000
+2023-02-08 16:51:04,060 - mmdet - INFO - Saving checkpoint at 24 epochs
+2023-02-08 16:51:06,394 - mmdet - INFO - Evaluating bbox...
+2023-02-08 16:51:06,432 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.706
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.826
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.778
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.578
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.906
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.736
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.736
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.736
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.578
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.922
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:51:06,432 - mmdet - INFO - Evaluating segm...
+2023-02-08 16:51:06,473 - mmdet - INFO - 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.723
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.826
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.775
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.579
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.930
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.752
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.752
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.752
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.581
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.952
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = -1.000
+
+2023-02-08 16:51:06,474 - mmdet - INFO - Exp name: mask_rcnn_r50_fpn_2x_coco_balloon.py
+2023-02-08 16:51:06,474 - mmdet - INFO - Epoch(val) [24][13]	bbox_mAP: 0.7064, bbox_mAP_50: 0.8257, bbox_mAP_75: 0.7784, bbox_mAP_s: 0.5782, bbox_mAP_m: 0.9061, bbox_mAP_l: -1.0000, bbox_mAP_copypaste: 0.7064 0.8257 0.7784 0.5782 0.9061 -1.0000, segm_mAP: 0.7232, segm_mAP_50: 0.8257, segm_mAP_75: 0.7751, segm_mAP_s: 0.5792, segm_mAP_m: 0.9304, segm_mAP_l: -1.0000, segm_mAP_copypaste: 0.7232 0.8257 0.7751 0.5792 0.9304 -1.0000
